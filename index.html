@@ -139,7 +139,7 @@ class: center, middle
 # List インタフェースについて (2)
 
 * List の特徴
-  * 順序のあるコレクション
+  * 順序のあるコレクション（集合）
   * インデックスでアクセスできる
   * 重複した要素を格納できる
 * 主な実装クラス
@@ -155,7 +155,6 @@ class: center, middle
 |取得|E get(int index)|
 |削除|E remove(int index)|
 |検索|int indexOf(Object o)|
-|消去|void clear()|
 |部分取得|List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)|
 |比較|int hashCode()<br/>boolean equals(Object o)|
 
@@ -163,7 +162,7 @@ class: center, middle
 
 # SequencedCollectionインタフェース
 
-* 順序のあるコレクション
+* 順序のあるコレクション（集合）
 * 両端の操作が操作できる
 * Java 21 で追加された
   * Deque や SortedSet といった順序のあるコレクションを統一的に扱えるようにするため
@@ -185,9 +184,46 @@ class: center, middle
 
 # Collection インタフェース
 
+* Collections Framework のルートインタフェース
+* オブジェクトのコレクションを表すオブジェクト
+* 汎用的な操作を提供する
+
+---
+
+# Collection インタフェースの主なメソッド
+
+|操作|メソッド|
+|:--:|--|
+|追加|void add(E element)|
+|取得| - |
+|削除|E remove(Object element)<br/>default boolean removeIf(Predicate&amp;&lt;? super E&amp;&gt; filter)|
+|検索|boolean contains(Object element)|
+|ああ|default Stream&amp;&lt;E&amp;&gt; stream()|
+|変換|Object[] toArray()<br/>T[] toArray(T[] a)<br/>default T[] toArray(IntFunction<T[]> generator)|
+
 ---
 
 # Iterable インタフェース
+
+* 拡張for文(foreachループ)を使えるようにするためのインタフェース
+  * このために Collection インタフェースから、iterator() だけ切り出された
+
+|操作|メソッド|
+|:--:|--|
+|イテレート|Iterator&amp;&lt;T&amp;&gt; iterator()|
+|ループ|default void forEach(Consumer&amp;&lt;? super T&amp;&gt; action)|
+|ああ|default Spliterator&amp;&lt;T&amp;&gt; spliterator()|
+
+---
+
+# ArrayList の位置づけ
+
+|インタフェース|ハッシュテーブル|サイズ変更可能な配列|バランスツリー|リンクリスト|ハッシュテーブル+リンクリスト|
+|--|--|--|--|--|--|
+|List|-|ArrayList |-|LinkedList| 
+|Queue, Deque |-|ArrayDeque |-|LinkedList| 
+|Set|HashSet|-|TreeSet |-|LinkedHashSet|
+|Map|HashMap |-|TreeMap |-|LinkedHashMap|
 
 ---
 
