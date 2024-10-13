@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>詳細解説！ArrayListの仕組みと実装</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="https://remarkjs.com/downloads/remark-0.15.0.min.js" type="text/javascript">
+    </script>
+    <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+    @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+    @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+
+    body { 
+      font-family: 'Noto Sans JP", sans-serif';
+    }
+    .remark-code, .remark-inline-code {
+      font-family: 'Ubuntu Mono';
+    }
+    .remark-inline-code { 
+      font-style: italic;
+    }
+
+    .remark-slide-content {
+      font-size: 38px; /* 20px */
+      padding: 0.5em 2em;
+    }
+    .remark-slide-content > * {
+      margin: 0.25em 0;
+    }
+    .remark-slide-number {
+      display: none; /* ページ番号 */
+    }
+    .remark-slide-content h1 {
+      font-size:60px; /* 55px */
+    }
+    .remark-slide-content h2 {
+      font-size:50px; /* 45px */
+    }
+    .remark-slide-content h3 {
+      font-size:40px; /* 35px */
+    }
+    .remark-slide-content .highlight {
+      color: darkred;
+      font-weight: bold;
+    }
+    .remark-code {
+      font-size:36px; /* 18px */
+      background-color: #EFEFEF;
+    }
+
+    .underline {
+      text-decoration: underline;
+    }
+
+    .dotted .remark-code {
+      border: 3px black dotted;
+    }
+    
+    .move {
+        animation: anim 0.5s ease-out;
+    }
+    @keyframes anim {
+        0% {
+            transform: translateX(300px);
+        }
+        100% {
+            transform: translateX(0px);
+        }
+    }
+    table{
+      border-collapse: collapse;
+      width: 100%;
+    }
+    thead > tr {
+      background-color: #BBB;
+    }
+    td, th {
+      border: 2px solid #555;
+      padding: 0 0.5em;
+    }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# 詳細解説！
+# ArrayListの仕組みと実装
+
+&nbsp;  
+YujiSoftware
+
+---
+
+# 目次
+
+* ArrayList とは？
+  * List インタフェースについて
+  * LinkedList, Vector, 配列との違い
+* ArrayList のアルゴリズム
+* ArrayList の実装
+* メソッドの実装
+  * コンストラクタ
+  * add, set, remove, contains, indexOf, toArray, hashCode, equals, clear, ensureCpacity, trimToSize, clone
+
+※ スコープ外: ジェネリクス、歴史
+
+
+---
+class: center, middle
+
+# ArrayList とは？
+
+---
+class: center, middle
+
+<p style="font-size: 72px;">
+<span style="font-size: 100px; font-weight: bold; text-decoration: underline;">Array</span> を使って実装した<br/>
+<span style="font-size: 100px; font-weight: bold; text-decoration: underline;">List</span> インタフェース
+</p>
+
+---
+
+# List インタフェースについて (1)
+
+* Collections Framework の一部
+
+![Collections Framework](img/collections.svg)
+
+* Collections Framework とは…
+  * オブジェクトの集合を表し、操作するアーキテクチャ
+
+---
+
+# List インタフェースについて (2)
+
+* List の特徴
+  * 順序がある
+  * インデックスでアクセスできる
+  * 重複した要素を格納できる
+* 主な実装クラス
+  * **ArrayList**, LinkedList, Vector, CopyOnWriteArrayList
+
+---
+
+# List インタフェースの主なメソッド
+
+|操作|メソッド|
+|:--:|--|
+|追加|add(int index, E element)|
+|取得|get(int index)|
+|削除|remove(int index)|
+|検索|indexOf(Object o)|
+|消去|clear()|
+|部分取得|subList(int fromIndex, int toIndex)|
+|比較|hashCode()<br/>equals(Object o)|
+
+---
+
+# SequencedCollectionインタフェース
+
+---
+
+# Collection インタフェース
+
+---
+
+# Iterable インタフェース
+
+---
+
+# 参考資料
+
+* Collections Framework (Java SE 22 & JDK 22)
+  * https://docs.oracle.com/javase/jp/22/docs/api/java.base/java/util/doc-files/coll-index.html
+* Effective Java 第3版 | Joshua Bloch/著, 柴田 芳樹/訳
+  * https://www.amazon.co.jp/dp/4621303252
+
+<!--
+みなさんは、java.util.ArrayList を使ったことがあると思います。
+しかし、その仕組みについて詳しく知らずに使っているという方も多いのではないでしょうか。
+もちろん、仕組みを知らなくても使えるのですが、知ることで今までよりも効率的なプログラムが書けるようになることでしょう！
+そこで今回は、ArrayList のアルゴリズムやその特徴、各メソッドの実装とその動きや注意点について詳しく説明していきます。
+
+memo:
+* 特定の範囲を消すメソッドはない
+  * 代わりに `list.subList(from, to).clear();` を使う
+* 一部を配列で取得したい
+  * list.subList(from, to).toArray(String::new);
+
+概要（予定）
+* ArrayList の仕組み
+* LinkedList、Vector、配列 との違い
+* 実装の詳細
+* new ArrayList() と書いた場合の初期容量（この時点では、0）
+* .add(0, obj) と書いたときの注意点（ずらす処理が入るので遅い）
+* .toArray(new String[0]) と書くのがいいのか、.toArray(new String[list.size()]) と書くのかいいのか（前者のほうが良い）
+* trimToSize はなんのためにあるのか
+など
+-->
+    </textarea>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+        highlightLines: true,
+        highlightStyle: "googlecode",
+        ratio: '16:9'
+      });
+    </script>
+  </body>
+</html>

@@ -69,7 +69,6 @@ classDiagram
     * `E set(int index, E element)`
     * `int size()`
     * `List<E> subList(int fromIndex, int toIndex)`
-    * `Object[] toArray()`
     * `default void replaceAll(UnaryOperator<E> operator)`
     * `default List<E> reversed()`
     * `default void sort(Comparator<? super E> c)`
