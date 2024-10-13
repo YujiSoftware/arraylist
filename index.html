@@ -68,12 +68,14 @@
             transform: translateX(0px);
         }
     }
+
     table{
       border-collapse: collapse;
       width: 100%;
     }
     thead > tr {
-      background-color: #BBB;
+      background-color: #222;
+      color: white;
     }
     td, th {
       border: 2px solid #555;
@@ -137,7 +139,7 @@ class: center, middle
 # List インタフェースについて (2)
 
 * List の特徴
-  * 順序がある
+  * 順序のあるコレクション
   * インデックスでアクセスできる
   * 重複した要素を格納できる
 * 主な実装クラス
@@ -149,17 +151,35 @@ class: center, middle
 
 |操作|メソッド|
 |:--:|--|
-|追加|add(int index, E element)|
-|取得|get(int index)|
-|削除|remove(int index)|
-|検索|indexOf(Object o)|
-|消去|clear()|
-|部分取得|subList(int fromIndex, int toIndex)|
-|比較|hashCode()<br/>equals(Object o)|
+|追加|void add(int index, E element)|
+|取得|E get(int index)|
+|削除|E remove(int index)|
+|検索|int indexOf(Object o)|
+|消去|void clear()|
+|部分取得|List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)|
+|比較|int hashCode()<br/>boolean equals(Object o)|
 
 ---
 
 # SequencedCollectionインタフェース
+
+* 順序のあるコレクション
+* 両端の操作が操作できる
+* Java 21 で追加された
+  * Deque や SortedSet といった順序のあるコレクションを統一的に扱えるようにするため
+
+![SequencedCollectionインタフェース](img/sequenced.svg)
+
+---
+
+# SequencedCollectionの主なメソッド
+
+|操作|メソッド|
+|:--:|--|
+|追加|default void addFirst(E e)<br/>default void addLast(E e)|
+|取得|default E getFirst()<br/>default E getLast()|
+|削除|default E removeFirst()<br/>default E removeLast()|
+|逆順操作|SequencedCollection&amp;lt;E&amp;gt; reversed()|
 
 ---
 
