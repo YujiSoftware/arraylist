@@ -14,6 +14,10 @@
     body { 
       font-family: 'Noto Sans JP", sans-serif';
     }
+    .remark-code {
+      border: 5px silver solid;
+      border-radius: 15px;
+    }
     .remark-code, .remark-inline-code {
       font-family: 'Ubuntu Mono';
     }
@@ -81,6 +85,28 @@
       border: 2px solid #555;
       padding: 0 0.5em;
     }
+
+    p.note {
+      position: relative;
+      padding: 1rem 2rem;
+      color: #166e25;
+      border-radius: 0 10px 10px 10px;
+      background: #e3f5d8;
+      margin-top: 72px;
+      font-size: 32px;
+    }
+    p.note > span {
+      position: absolute;
+      top: -54px;
+      left: 0;
+      height: 54px;
+      padding: 0 1em;
+      content: '\NOTE';
+      color: #fff;
+      border-radius: 10px 10px 0 0;
+      background: #22ac38;
+      line-height: 1.6;
+    }
     </style>
   </head>
   <body>
@@ -93,22 +119,6 @@ class: center, middle
 
 &nbsp;  
 YujiSoftware
-
----
-
-# 目次
-
-* ArrayList とは？
-  * List インタフェースについて
-  * LinkedList, Vector, 配列との違い
-* ArrayList のアルゴリズム
-* ArrayList の実装
-* メソッドの実装
-  * コンストラクタ
-  * add, set, remove, contains, indexOf, toArray, hashCode, equals, clear, ensureCpacity, trimToSize, clone
-
-※ スコープ外: ジェネリクス、歴史
-
 
 ---
 class: center, middle
@@ -125,25 +135,57 @@ class: center, middle
 
 ---
 
-# List インタフェースについて (1)
+# 目次
 
-* Collections Framework の一部
+* List インタフェースについて
+* ArrayList の設計とアルゴリズム
+* ArrayList の実装（ソースコードを読む）
+  * コンストラクタ
+  * add, set, remove, contains, indexOf, toArray, hashCode, equals, clear, ensureCpacity, trimToSize, clone
+
+※ スコープ外: ジェネリクス、歴史
+
+---
+
+# List って？
+
+<ul>
+  <li><strong>データ構造</strong>の一つ
+  <ul>
+    <li><strong>連続した</strong>データの集まりを扱う</li>
+    <ul>
+      <li>意味的には "Sequence" のほうが妥当</li>
+      <li>短い名前のほうがいいということで "List" が採用された</li>
+    </ul>
+  </ul>
+  <li>Java 1.2 で、Collections Framework のひとつとして追加された</li>
+</ul>
+---
+
+# Collections Framework
+
+* オブジェクトの集合を表し、操作するアーキテクチャ
+  * インタフェースと実装クラスの両方を提供している
+
+<hr/>
+【 主なインタフェース 】
 
 ![Collections Framework](img/collections.svg)
 
-* Collections Framework とは…
-  * オブジェクトの集合を表し、操作するアーキテクチャ
 
 ---
 
 # List インタフェースについて (2)
 
 * List の特徴
-  * 順序のあるコレクション（集合）
-  * インデックスでアクセスできる
-  * 重複した要素を格納できる
+  * **順序のある**コレクション（集合）
+  * **インデックスでアクセス**できる
+  * **重複**した要素を格納できる
 * 主な実装クラス
-  * **ArrayList**, LinkedList, Vector, CopyOnWriteArrayList
+  * **ArrayList**
+  * LinkedList
+  * Vector（互換性のために残っている）
+  * CopyOnWriteArrayList
 
 ---
 
@@ -186,45 +228,104 @@ class: center, middle
 
 * Collections Framework のルートインタフェース
 * オブジェクトのコレクションを表すオブジェクト
-* 汎用的な操作を提供する
+* コレクションに共通の操作を提供する
 
 ---
 
-# Collection インタフェースの主なメソッド
+# Collection の主なメソッド
 
 |操作|メソッド|
 |:--:|--|
 |追加|void add(E element)|
 |取得| - |
-|削除|E remove(Object element)<br/>default boolean removeIf(Predicate&amp;&lt;? super E&amp;&gt; filter)|
+|削除|E remove(Object element)|
 |検索|boolean contains(Object element)|
-|ああ|default Stream&amp;&lt;E&amp;&gt; stream()|
+|ああ|default Stream&amp;lt;E&amp;gt; stream()|
 |変換|Object[] toArray()<br/>T[] toArray(T[] a)<br/>default T[] toArray(IntFunction<T[]> generator)|
 
 ---
 
 # Iterable インタフェース
 
-* 拡張for文(foreachループ)を使えるようにするためのインタフェース
-  * このために Collection インタフェースから、iterator() だけ切り出された
+* 拡張for文（foreachループ）を使えるようにするためのインタフェース
+  * Java 5 で追加
+  * Collection インタフェースから `iterator()` を切り出した
 
 |操作|メソッド|
 |:--:|--|
-|イテレート|Iterator&amp;&lt;T&amp;&gt; iterator()|
-|ループ|default void forEach(Consumer&amp;&lt;? super T&amp;&gt; action)|
-|ああ|default Spliterator&amp;&lt;T&amp;&gt; spliterator()|
+|Iterator の取得|Iterator&amp;lt;T&amp;gt; iterator()|
+
+---
+class: center, middle
+
+# ArrayList の設計とアルゴリズム
 
 ---
 
-# ArrayList の位置づけ
+# ArrayList の設計
 
-|インタフェース|ハッシュテーブル|サイズ変更可能な配列|バランスツリー|リンクリスト|ハッシュテーブル+リンクリスト|
-|--|--|--|--|--|--|
-|List|-|ArrayList |-|LinkedList| 
-|Queue, Deque |-|ArrayDeque |-|LinkedList| 
-|Set|HashSet|-|TreeSet |-|LinkedHashSet|
-|Map|HashMap |-|TreeMap |-|LinkedHashMap|
+```java
+public class ArrayList<E> extends AbstractList<E>
+    implements List<E>, 
+               RandomAccess, Cloneable, Serializable
+```
 
+* 抽象クラス **AbstractList&amp;lt;E&amp;gt;** を継承
+* List&amp;lt;E&amp;gt; と **3つのマーカーインタフェース**を実装
+
+<p class="note">
+  <span>マーカーインタフェース</span>
+・メソッドやフィールドが一切定義されていないインタフェース<br/>
+・クラスの特徴を表すために用いる
+</p>
+  
+---
+
+# ArrayList の継承関係
+
+* 共通の抽象クラスを使うことで、
+
+![ArrayListの設計](img/extends.svg)
+
+---
+
+# ArrayList のマーカーインタフェース
+
+* 以下のことを示している
+* RandomAccess
+  * ランダムアクセスが高速である
+* Cloneable
+  * clone() メソッドに対応している
+* Serializable
+  * シリアライズ可能である
+
+---
+
+# ArrayList のアルゴリズム(1)
+
+
+
+---
+
+class: center, middle
+
+# ArrayList の実装
+# （ソースコードを読む）
+
+---
+
+# 今回読んでいくメソッド
+
+* コンストラクタ
+* add
+* get
+* set
+* remove
+* indexOf
+* contains
+* toArray
+* hashCode
+* equals
 ---
 
 # 参考資料
