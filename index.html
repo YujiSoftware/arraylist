@@ -8,8 +8,8 @@
     <style type="text/css">
     @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
     @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
-    @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
 
     body { 
       font-family: 'Noto Sans JP", sans-serif';
@@ -17,9 +17,14 @@
     .remark-code {
       border: 5px silver solid;
       border-radius: 15px;
+      font-size:32px; /* 18px */
+      background-color: #EFEFEF;
     }
     .remark-code, .remark-inline-code {
-      font-family: 'Ubuntu Mono';
+      font-family: "Source Code Pro", monospace;
+      font-optical-sizing: auto;
+      font-weight: 600;
+      font-style: normal;
     }
     .remark-inline-code { 
       font-style: italic;
@@ -47,10 +52,6 @@
     .remark-slide-content .highlight {
       color: darkred;
       font-weight: bold;
-    }
-    .remark-code {
-      font-size:36px; /* 18px */
-      background-color: #EFEFEF;
     }
 
     .underline {
@@ -86,26 +87,27 @@
       padding: 0 0.5em;
     }
 
-    p.note {
+    div.note {
       position: relative;
-      padding: 1rem 2rem;
+      padding: 0.1em 0.5em;    
       color: #166e25;
       border-radius: 0 10px 10px 10px;
       background: #e3f5d8;
       margin-top: 72px;
       font-size: 32px;
     }
-    p.note > span {
+    div.note > p:first-child {
       position: absolute;
-      top: -54px;
+      top: -85px;
       left: 0;
       height: 54px;
       padding: 0 1em;
-      content: '\NOTE';
       color: #fff;
       border-radius: 10px 10px 0 0;
       background: #22ac38;
-      line-height: 1.6;
+    }
+    div.note > p:nth-child(n + 2) {
+      margin: 0.5em;
     }
     </style>
   </head>
@@ -158,7 +160,7 @@ class: center, middle
       <li>短い名前のほうがいいということで "List" が採用された</li>
     </ul>
   </ul>
-  <li>Java 1.2 で、Collections Framework のひとつとして追加された</li>
+  <li>Java 1.2 で、<strong>Collections Framework</strong> のひとつとして標準APIに追加された</li>
 </ul>
 ---
 
@@ -273,11 +275,12 @@ public class ArrayList<E> extends AbstractList<E>
 * 抽象クラス **AbstractList&amp;lt;E&amp;gt;** を継承
 * List&amp;lt;E&amp;gt; と **3つのマーカーインタフェース**を実装
 
-<p class="note">
-  <span>マーカーインタフェース</span>
-・メソッドやフィールドが一切定義されていないインタフェース<br/>
-・クラスの特徴を表すために用いる
-</p>
+.note[
+マーカーインタフェース
+
+メソッドやフィールドが一切定義されていないインタフェース。<br/>
+クラスの特徴を表すために用いる。
+]
   
 ---
 
@@ -316,6 +319,7 @@ class: center, middle
 
 # 今回読んでいくメソッド
 
+* フィールド変数
 * コンストラクタ
 * add
 * get
@@ -328,10 +332,112 @@ class: center, middle
 * equals
 ---
 
+# フィールド変数
+
+```java
+// データ格納用の配列
+transient Object[] elementData;
+ ↑シリアル化の対象外にする修飾子
+
+// 現在のサイズ
+private int size;
+```
+
+```java
+(AbstractList)
+// 構造が変更された回数
+protected transient int modCount = 0;
+```
+
+---
+
+# コンストラクタ
+
+* ArrayList()
+  * 初期容量10で空のリストを作成
+* ArrayList(int initialCapacity)
+  * 指定された初期容量で空のリストを作成
+* ArrayList(Collection<? extends E> c)
+  * 指定されたコレクションの要素が含まれているリストを作成
+
+---
+
+# ArrayList()
+
+初期容量10で空のリストを作成
+
+```java
+public ArrayList() {
+    this(10);
+}
+```
+
+.note[
+メモ
+
+この実装は Java 7 Update 25 まで<br/>
+Java 7 Update 40 以降では、次ページの遅延初期化する実装に変更になった
+]
+
+
+---
+
+# ArrayList()
+
+```java
+private static final Object[]
+  DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
+
+public ArrayList() {
+  this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+}
+```
+
+* この時点では、**配列を作成しない**
+  * 最初に `add()` が呼ばれた際に作成（遅延初期化）
+  * ArrayList を作っても要素の追加が行われないことが多々あるため（[JDK-7143928](https://bugs.openjdk.org/browse/JDK-7143928)）
+
+---
+
+# ArrayList(int initialCapacity)
+
+指定された初期容量で空のリストを作成
+
+* 初期容量 **> 0**
+  * その容量の配列を作成
+* 初期容量 **== 0**
+  * 共通の容量 0 の配列を使いまわす
+* 初期容量 **< 0**
+  * IllegalArgumentException をスロー
+
+---
+
+# ArrayList(int initialCapacity)
+
+指定された初期容量で空のリストを作成
+
+```java
+private static final Object[] EMPTY_ELEMENTDATA = {};
+
+public ArrayList(int initialCapacity) {
+  if (initialCapacity > 0) {
+    this.elementData = new Object[initialCapacity];
+  } else if (initialCapacity == 0) {
+    this.elementData = EMPTY_ELEMENTDATA;
+  } else {
+    throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
+  }
+}
+```
+
+---
+
 # 参考資料
 
 * Collections Framework (Java SE 22 & JDK 22)
   * https://docs.oracle.com/javase/jp/22/docs/api/java.base/java/util/doc-files/coll-index.html
+* Collections Framework 入門 - もちだ
+  * https://www.slideshare.net/mikeneck/jjugccc-2019-spring-collections-framework-jjug-jjugccc-cccc1
 * Effective Java 第3版 | Joshua Bloch/著, 柴田 芳樹/訳
   * https://www.amazon.co.jp/dp/4621303252
 
