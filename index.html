@@ -17,8 +17,8 @@
     .remark-code {
       border: 5px silver solid;
       border-radius: 15px;
-      font-size:32px; /* 18px */
-      background-color: #EFEFEF;
+      font-size: 32px; /* 18px */
+      margin: 0 -10px;
     }
     .remark-code, .remark-inline-code {
       font-family: "Source Code Pro", monospace;
@@ -26,8 +26,10 @@
       font-weight: 600;
       font-style: normal;
     }
-    .remark-inline-code { 
-      font-style: italic;
+    .remark-inline-code {
+      /* font-style: italic; */
+      text-decoration: underline dotted;
+      color: #006;
     }
 
     .remark-slide-content {
@@ -337,7 +339,7 @@ class: center, middle
 ```java
 // データ格納用の配列
 transient Object[] elementData;
- ↑シリアル化の対象外にする修飾子
+ ↑ シリアル化の対象外にする修飾子
 
 // 現在のサイズ
 private int size;
@@ -353,12 +355,14 @@ protected transient int modCount = 0;
 
 # コンストラクタ
 
-* ArrayList()
-  * 初期容量10で空のリストを作成
-* ArrayList(int initialCapacity)
-  * 指定された初期容量で空のリストを作成
-* ArrayList(Collection<? extends E> c)
-  * 指定されたコレクションの要素が含まれているリストを作成
+* `ArrayList()`
+  * デフォルトコンストラクタ
+  * **初期容量10**で空のリストを作成
+* `ArrayList(int initialCapacity)`
+  * **指定された初期容量**で空のリストを作成
+* `ArrayList(Collection<? extends E> c)`
+  * コピーコンストラクタ
+  * **指定されたコレクションをコピーした**リストを作成
 
 ---
 
@@ -372,11 +376,13 @@ public ArrayList() {
 }
 ```
 
-.note[
-メモ
+* 別のコンストラクタを呼び出す
+  * `this.elementData = new Object[10]` となる
 
-この実装は Java 7 Update 25 まで<br/>
-Java 7 Update 40 以降では、次ページの遅延初期化する実装に変更になった
+.note[
+この実装は **Java 7 Update 25 まで**
+
+Java 7 Update 40 以降では、次ページの**遅延初期化**する実装に変更
 ]
 
 
@@ -389,26 +395,13 @@ private static final Object[]
   DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
 public ArrayList() {
-  this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+  this.elementData =DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
 }
 ```
 
-* この時点では、**配列を作成しない**
-  * 最初に `add()` が呼ばれた際に作成（遅延初期化）
+* **配列を作成せず、Singleton な空配列を使う**
+  * 最初に `add` メソッドが呼ばれた際に作成（**遅延初期化**）
   * ArrayList を作っても要素の追加が行われないことが多々あるため（[JDK-7143928](https://bugs.openjdk.org/browse/JDK-7143928)）
-
----
-
-# ArrayList(int initialCapacity)
-
-指定された初期容量で空のリストを作成
-
-* 初期容量 **> 0**
-  * その容量の配列を作成
-* 初期容量 **== 0**
-  * 共通の容量 0 の配列を使いまわす
-* 初期容量 **< 0**
-  * IllegalArgumentException をスロー
 
 ---
 
@@ -429,6 +422,94 @@ public ArrayList(int initialCapacity) {
   }
 }
 ```
+
+---
+
+# ArrayList(int initialCapacity)
+
+指定された初期容量で空のリストを作成
+
+1. initialCapacity **> 0** の場合
+  * その容量の配列を作成し、 `this.elementData` に代入
+2. initialCapacity **== 0** の場合
+  * Singleton の空配列 `EMPTY_ELEMENTDATA` を、`this.elementData` に代入
+3. initialCapacity **< 0** の場合
+  * `IllegalArgumentException` をスロー
+
+---
+
+# ArrayList(Collection<? extends E> c)
+
+```java
+public ArrayList(Collection<? extends E> c) {
+  Object[] a = c.toArray();
+  if ((size = a.length) != 0) {
+    if (c.getClass() == ArrayList.class) {
+      elementData = a;
+    } else {
+      elementData = 
+             Arrays.copyOf(a, size, Object[].class);
+    }
+  } else {
+    elementData = EMPTY_ELEMENTDATA;
+  }
+}
+```
+
+---
+
+# ArrayList(Collection<? extends E> c)
+
+1. `c.toArray()` によりコレクションの配列を取得
+2. 取得した配列の長さを `this.size` に代入
+3. サイズ **> 0** の場合
+  * （次ページに記載）
+4. サイズ **== 0** の場合
+  * Singleton の空配列 `EMPTY_ELEMENTDATA` を、`this.elementData` に代入
+  
+---
+
+# ArrayList(Collection<? extends E> c)
+
+（サイズ **> 0** の場合）
+1. 引数 `c` が ArrayList の場合
+  * 取得した配列を`this.elementData` に代入
+2. 引数 `c` が ArrayList **以外**の場合
+  * 取得した配列の中身を**新しい `Object[]` にコピー**してから、`this.elementData` に代入（**防御的コピー**）
+
+.half[
+→ なぜ**防御的コピーが必要？**<br>
+→ なぜ **ArrayList の場合は不要？**
+]
+
+---
+
+# 防御的コピーをする理由 (1)
+
+* Collection の `toArray()` の戻り値の型は `Object[]` <br>
+→ **任意の型の配列（`String[]`など）を返すことができてしまう**（配列の共変性）
+* もし `Object[]` 以外だったら？
+  * そのまま `this.elementData` に使ってしまうと、リストの変更時に **ArrayStoreException のリスク！<br>**
+  
+<br>これを避けるため、新しく `Object[]` を作りコピーしている
+
+---
+
+# 防御的コピーをする理由 (2)
+
+* 配列の参照を、元のコレクションが保持してるかも？
+
+```java
+public EvilCollection implements Collection<E> {
+  public Object[] elements = new Object[10];
+  public Object[] toArray() {
+    return elements;
+  }
+}
+```
+
+* この場合、EvilCollection の `elements` を操作することで、ArrayList の外部から変更ができてしまう！
+  * **コピーして利用すれば、それができなくなる**
 
 ---
 
