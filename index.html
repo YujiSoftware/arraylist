@@ -115,6 +115,9 @@
       display: flex;
       margin: 0.5em 0px;
     }
+    .flex > * {
+      flex: 1;
+    }
     .flex > p {
       margin: 0 0;
     }
@@ -343,17 +346,23 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 
 # 今回読んでいくメソッド
 
+.flex[
+.child[
 * フィールド変数
 * コンストラクタ
 * add
 * get
-* set
 * remove
+* set
+]
+.child[
 * indexOf
 * contains
 * toArray
 * hashCode
 * equals
+]
+]
 
 ---
 
