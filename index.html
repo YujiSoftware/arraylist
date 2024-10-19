@@ -111,6 +111,13 @@
     div.note > p:nth-child(n + 2) {
       margin: 0.5em;
     }
+    .flex {
+      display: flex;
+      margin: 0.5em 0px;
+    }
+    .flex > p {
+      margin: 0 0;
+    }
     </style>
   </head>
   <body>
@@ -319,6 +326,21 @@ class: center, middle
 
 ---
 
+# ⚠ 注意
+
+* ここからは **Java 23** のコードを元に説明します。
+  * 今後のバージョンで変わるかもしれません。
+* 紹介するコードは、説明の都合で一部を省略したり、メソッドをまとめたりしています。
+* **ぜひ実際のコードもご確認ください。**
+
+.flex[
+https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/ArrayList.java
+
+![QRCode](./img/qrcode.png)
+]
+
+---
+
 # 今回読んでいくメソッド
 
 * フィールド変数
@@ -332,6 +354,7 @@ class: center, middle
 * toArray
 * hashCode
 * equals
+
 ---
 
 # フィールド変数
@@ -440,6 +463,7 @@ public ArrayList(int initialCapacity) {
 
 # ArrayList(Collection<? extends E> c)
 
+**指定されたコレクションをコピーした**リストを作成
 ```java
 public ArrayList(Collection<? extends E> c) {
   Object[] a = c.toArray();
@@ -473,14 +497,16 @@ public ArrayList(Collection<? extends E> c) {
 
 （サイズ **> 0** の場合）
 1. 引数 `c` が ArrayList の場合
-  * 取得した配列を`this.elementData` に代入
+  * 取得した配列 `a` を`this.elementData` に代入
 2. 引数 `c` が ArrayList **以外**の場合
-  * 取得した配列の中身を**新しい `Object[]` にコピー**してから、`this.elementData` に代入（**防御的コピー**）
+  * 取得した配列 `a` の中身を**新しい `Object[]` にコピー**してから、`this.elementData` に代入（**防御的コピー**）
 
-.half[
-→ なぜ**防御的コピーが必要？**<br>
-→ なぜ **ArrayList の場合は不要？**
-]
+```java
+elementData = Arrays.copyOf(a, size, Object[].class);
+```
+
+→ なぜ**防御的コピーが必要？** なぜ **ArrayList の場合は不要？**
+
 
 ---
 
@@ -509,7 +535,77 @@ public EvilCollection implements Collection<E> {
 ```
 
 * この場合、EvilCollection の `elements` を操作することで、ArrayList の外部から変更ができてしまう！
-  * **コピーして利用すれば、それができなくなる**
+  * **コンストラクタ内でコピーすることで、できなくする**
+
+---
+
+# ArrayList の場合、コピーは不要？
+
+* ArrayList の `toArray()` で取得した配列は、そのまま使って大丈夫
+  * 新しい `Object[]` にコピーしたものを返しているから
+<br>&nbsp;
+
+```java
+public Object[] toArray() {
+   return Arrays.copyOf(elementData, size);
+}
+```
+
+---
+
+# add(E e)
+
+指定された要素をこのリストの最後に追加
+
+```java
+public boolean add(E e) {
+  modCount++;
+  add(e, elementData, size);
+  return true;
+}
+private void add(E e, Object[] elementData, int s) {
+    if (s == elementData.length)
+        elementData = grow(size + 1);
+    elementData[s] = e;
+    size = s + 1;
+}
+```
+
+---
+
+# add(E e)
+
+1. modCount をインクリメント
+2. 空きがない場合
+  1. `grow()` で新しい長さの配列を作る（後述）
+3. 末尾にオブエジェクトを追加
+4. サイズを +1
+
+---
+
+# grow(int minCapacity)
+
+新しい長さの配列を作り直す
+```java
+private Object[] grow(int minCapacity) {
+  int oldCapacity = elementData.length;
+  if (oldCapacity > 0 || elementData 
+            != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+    // 省略：新しいサイズを計算
+    return elementData = 
+             Arrays.copyOf(elementData, newCapacity);
+  } else {
+    return elementData = 
+      new Object[Math.max(DEFAULT_CAPACITY, minCapacity)];
+  }
+}
+```
+
+---
+
+# grow(int minCapacity)
+
+
 
 ---
 
@@ -521,6 +617,14 @@ public EvilCollection implements Collection<E> {
   * https://www.slideshare.net/mikeneck/jjugccc-2019-spring-collections-framework-jjug-jjugccc-cccc1
 * Effective Java 第3版 | Joshua Bloch/著, 柴田 芳樹/訳
   * https://www.amazon.co.jp/dp/4621303252
+
+---
+
+# 参考資料
+
+- ArrayList の防御的コピーについて
+  - Is there a good reason to split in two different cases the following ArrayList constructor in the OpenJDK code? - Stack Overflow
+  - https://stackoverflow.com/q/77574918/1932017
 
 <!--
 みなさんは、java.util.ArrayList を使ったことがあると思います。
