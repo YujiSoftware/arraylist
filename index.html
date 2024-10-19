@@ -108,8 +108,8 @@
       border-radius: 10px 10px 0 0;
       background: #22ac38;
     }
-    div.note > p:nth-child(n + 2) {
-      margin: 0.5em;
+    div.note > :nth-child(n + 2) {
+      margin: 0.5em auto;
     }
     .flex {
       display: flex;
@@ -364,13 +364,13 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 transient Object[] elementData;
  ↑ シリアル化の対象外にする修飾子
 
-// 現在のサイズ
+// 現在使用中のサイズ
 private int size;
 ```
 
 ```java
 (AbstractList)
-// 構造が変更された回数
+// 構造が変更された回数（ループ中の変更を検出するための変数）
 protected transient int modCount = 0;
 ```
 
@@ -379,7 +379,6 @@ protected transient int modCount = 0;
 # コンストラクタ
 
 * `ArrayList()`
-  * デフォルトコンストラクタ
   * **初期容量10**で空のリストを作成
 * `ArrayList(int initialCapacity)`
   * **指定された初期容量**で空のリストを作成
@@ -399,7 +398,7 @@ public ArrayList() {
 }
 ```
 
-* 別のコンストラクタを呼び出す
+* 初期容量を指定するコンストラクタを呼び出す
   * `this.elementData = new Object[10]` となる
 
 .note[
@@ -441,7 +440,7 @@ public ArrayList(int initialCapacity) {
   } else if (initialCapacity == 0) {
     this.elementData = EMPTY_ELEMENTDATA;
   } else {
-    throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
+    throw new IllegalArgumentException(…snip…);
   }
 }
 ```
@@ -450,13 +449,12 @@ public ArrayList(int initialCapacity) {
 
 # ArrayList(int initialCapacity)
 
-指定された初期容量で空のリストを作成
-
-1. initialCapacity **> 0** の場合
-  * その容量の配列を作成し、 `this.elementData` に代入
-2. initialCapacity **== 0** の場合
+引数 `initialCapacity` が …
+1. **> 0** の場合
+  * `initialCapacity` の容量の配列を作成し、 `this.elementData` に代入
+2. **== 0** の場合
   * Singleton の空配列 `EMPTY_ELEMENTDATA` を、`this.elementData` に代入
-3. initialCapacity **< 0** の場合
+3. **< 0** の場合
   * `IllegalArgumentException` をスロー
 
 ---
@@ -467,15 +465,15 @@ public ArrayList(int initialCapacity) {
 ```java
 public ArrayList(Collection<? extends E> c) {
   Object[] a = c.toArray();
-  if ((size = a.length) != 0) {
+  if ((this.size = a.length) != 0) {
     if (c.getClass() == ArrayList.class) {
-      elementData = a;
+      this.elementData = a;
     } else {
-      elementData = 
+      this.elementData = 
              Arrays.copyOf(a, size, Object[].class);
     }
   } else {
-    elementData = EMPTY_ELEMENTDATA;
+    this.elementData = EMPTY_ELEMENTDATA;
   }
 }
 ```
@@ -486,27 +484,25 @@ public ArrayList(Collection<? extends E> c) {
 
 1. `c.toArray()` によりコレクションの配列を取得
 2. 取得した配列の長さを `this.size` に代入
-3. サイズ **> 0** の場合
+3. `this.size` **> 0** の場合
   * （次ページに記載）
-4. サイズ **== 0** の場合
+4. `this.size` **== 0** の場合
   * Singleton の空配列 `EMPTY_ELEMENTDATA` を、`this.elementData` に代入
   
 ---
 
 # ArrayList(Collection<? extends E> c)
 
-（サイズ **> 0** の場合）
+`this.size` **> 0** の場合
 1. 引数 `c` が ArrayList の場合
   * 取得した配列 `a` を`this.elementData` に代入
 2. 引数 `c` が ArrayList **以外**の場合
   * 取得した配列 `a` の中身を**新しい `Object[]` にコピー**してから、`this.elementData` に代入（**防御的コピー**）
 
-```java
-elementData = Arrays.copyOf(a, size, Object[].class);
-```
-
-→ なぜ**防御的コピーが必要？** なぜ **ArrayList の場合は不要？**
-
+.half[
+→ なぜ**防御的コピーが必要？** <br>
+→ なぜ **ArrayList の場合は不要？**
+]
 
 ---
 
@@ -541,8 +537,8 @@ public EvilCollection implements Collection<E> {
 
 # ArrayList の場合、コピーは不要？
 
-* ArrayList の `toArray()` で取得した配列は、そのまま使って大丈夫
-  * 新しい `Object[]` にコピーしたものを返しているから
+* ArrayList の `toArray()` の場合
+  * 新しい `Object[]` にコピーしたものを返しているから、そのまま使って大丈夫
 <br>&nbsp;
 
 ```java
@@ -553,7 +549,7 @@ public Object[] toArray() {
 
 ---
 
-# add(E e)
+# boolean add(E e)
 
 指定された要素をこのリストの最後に追加
 
@@ -567,19 +563,27 @@ private void add(E e, Object[] elementData, int s) {
     if (s == elementData.length)
         elementData = grow(size + 1);
     elementData[s] = e;
-    size = s + 1;
+    this.size = s + 1;
 }
 ```
 
 ---
 
-# add(E e)
+# boolean add(E e)
 
-1. modCount をインクリメント
+1. `this.modCount` を + 1
 2. 空きがない場合
-  1. `grow()` で新しい長さの配列を作る（後述）
-3. 末尾にオブエジェクトを追加
-4. サイズを +1
+  * `grow(size + 1)` で新しい容量の配列を作る（後述）
+3. 最後尾にオブジェクトを追加
+4. `this.size` を + 1
+5. `true` を return
+
+.note[
+戻り値の boolean の意味
+
+コレクションが変更されたかどうか
+（Set の場合はすでに同じ値があった場合に false になるが、List は必ず true になる）
+]
 
 ---
 
@@ -591,22 +595,81 @@ private Object[] grow(int minCapacity) {
   int oldCapacity = elementData.length;
   if (oldCapacity > 0 || elementData 
             != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
-    // 省略：新しいサイズを計算
+    // 省略：必要な容量を計算
     return elementData = 
              Arrays.copyOf(elementData, newCapacity);
   } else {
     return elementData = 
       new Object[Math.max(DEFAULT_CAPACITY, minCapacity)];
   }
-}
 ```
 
 ---
 
 # grow(int minCapacity)
 
+（説明の都合上、if ... else ... の順番を逆にしています）
 
+1. 引数なしコンストラクタを実行し、まだ空の場合
+  * 引数 `minCapacity` か `DEFAULT_CAPACITY`（= 10）のいずれか大きい方の容量で新しく配列を作成
+2. そうでなければ
+  1. 引数 `minCapacity` か **現在の容量の 1.5倍**の大きい方を容量とする（例外あり、最後に解説）
+  2. 新しい配列に、現在の配列の内容をコピー
+  3. `this.elementData` を新しい配列に差し替え
 
+---
+
+# E get(int index)
+
+このリスト内の指定された位置にある要素を返す
+<br>&nbsp;
+
+```java
+public E get(int index) {
+  Objects.checkIndex(index, this.size);
+
+  return (E) this.elementData[index];
+}
+```
+
+---
+
+# E get(int index)
+
+1. 範囲外（`index < 0` または `index >= size`）の場合
+  * **IndexOutOfBoundsException** をスロー
+2. `this.elementData[index]` を return
+
+---
+
+# grow の新しい容量の決定方法
+
+* 引数 `minCapacity` か **現在の容量の 1.5倍**（大きい方）
+* ただし、`Integer.MAX_VALUE - 8` を超える場合
+  * `Integer.MAX_VALUE - 8` で、以降は**現在の容量 + 1**
+* さらに `Integer.MAX_VALUE`（= 2,147,483,647）を超えるなら、OutOfMemoryError をスロー
+
+```java
+10 → 15 → 22 → 33 → 49 → …中略… → 1796357452
+→ 2147483639 → 2147483640 → 2147483641 → …中略…
+→ 2147483647 → OutOfMemoryError
+```
+
+---
+
+# Integer.MAX_VALUE - 8 って？
+
+* `SOFT_MAX_ARRAY_LENGTH` という定数値
+  * 作成できる**配列の長さ上限ギリギリの値** ([JDK-6933217](https://bugs.openjdk.org/browse/JDK-6933217))
+
+.note[
+配列の長さの上限
+
+* Java 言語仕様上は `Integer.MAX_VALUE - 1` まで
+* しかし、JVM の実装によっては `Integer.MAX_VALUE` に近い長さの配列を
+割り当てようとした場合、**ヒープの空きに関わらず** OutOfMemoryError（"Requested array size exceeds VM limit"）をスローする
+* `Integer.MAX_VALUE - 8` なら、どの JVM でも大丈夫
+]
 ---
 
 # 参考資料
