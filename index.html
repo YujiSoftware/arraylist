@@ -353,7 +353,6 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 * add
 * get
 * remove
-* set
 ]
 .child[
 * indexOf
@@ -616,11 +615,26 @@ private Object[] grow(int minCapacity) {
 
 # grow(int minCapacity)
 
-（説明の都合上、if ... else ... の順番を逆にしています）
+.note[
+ポイント１
+
+このタイミングで遅延初期化する
+]
 
 1. 引数なしコンストラクタを実行し、まだ空の場合
-  * 引数 `minCapacity` か `DEFAULT_CAPACITY`（= 10）のいずれか大きい方の容量で新しく配列を作成
-2. そうでなければ
+  1. 引数 `minCapacity` か `DEFAULT_CAPACITY`（= 10）のいずれか大きい方の容量で新しく配列を作成
+
+---
+
+# grow(int minCapacity)
+
+.note[
+ポイント２
+
+最低限必要な分ではなく、まとめて大きくする
+]
+
+1. 初期化済みの場合
   1. 引数 `minCapacity` か **現在の容量の 1.5倍**の大きい方を容量とする（例外あり、最後に解説）
   2. 新しい配列に、現在の配列の内容をコピー
   3. `this.elementData` を新しい配列に差し替え
@@ -660,18 +674,85 @@ public E remove(int index) {
   return oldValue;
 }
 ```
+→ `fastRemove` メソッドは何をしている？
 
 ---
 
 # void fastRemove(Object[] es, int i)
 
+指定された位置にある要素を削除
+
 ```java
 private void fastRemove(Object[] es, int i) {
   modCount++;
   final int newSize;
-  if ((newSize = size - 1) > i)
+  if ((newSize = this.size - 1) > i)
     System.arraycopy(es, i + 1, es, i, newSize - i);
   es[size = newSize] = null;
+}
+```
+
+---
+
+# void fastRemove(Object[] es, int i)
+
+1. `this.modCount` を + 1
+2. **指定されたインデックスが末尾でない**場合
+  1. 指定されたインデックス + 1 〜末尾までを、一つ手前にコピー
+3. 末尾に `null` を代入
+4. サイズを更新
+
+TODO: 図
+
+---
+
+# boolean contains(Object o)
+
+指定された要素がこのリストに含まれているかどうか
+<br>&nbsp;
+
+```java
+public boolean contains(Object o) {
+  return indexOf(o) >= 0;
+}
+```
+→ `indexOf(Object o)` を呼ぶだけ
+
+---
+
+# int indexOf(Object o)
+
+```java
+public int indexOf(Object o) {
+  return indexOfRange(o, 0, size);
+}
+int indexOfRange(Object o, int start, int end) {
+  Object[] es = elementData;
+  if (o == null) {
+    // 検索処理
+  } else {
+    // 検索処理
+  }
+  return -1;  // 見つからなかった
+}
+```
+
+---
+
+# int indexOf(Object o) の検索処理
+
+```java
+for (int i = start; i < end; i++) {
+  if (o.equals(es[i])) {
+    return i;
+  }
+}
+```
+```java
+for (int i = start; i < end; i++) {
+  if (es[i] == null) {
+    return i;
+  }
 }
 ```
 
