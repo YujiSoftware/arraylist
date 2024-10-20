@@ -350,6 +350,7 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 .child[
 * フィールド変数
 * コンストラクタ
+* toArray
 * add
 * get
 * remove
@@ -357,7 +358,6 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 .child[
 * indexOf
 * contains
-* toArray
 * hashCode
 * equals
 ]
@@ -739,7 +739,22 @@ int indexOfRange(Object o, int start, int end) {
 
 ---
 
-# int indexOf(Object o) の検索処理
+# `o == null` の検索処理
+
+```java
+for (int i = start; i < end; i++) {
+  if (es[i] == null) {
+    return i;
+  }
+}
+```
+
+* 先頭から順に、要素が `null` か確認
+  * `null` なら、そのインデックスを return
+
+---
+
+# `o != null` の検索処理
 
 ```java
 for (int i = start; i < end; i++) {
@@ -748,13 +763,24 @@ for (int i = start; i < end; i++) {
   }
 }
 ```
-```java
-for (int i = start; i < end; i++) {
-  if (es[i] == null) {
-    return i;
-  }
-}
-```
+
+* 先頭から順に、`equals` メソッドで判定
+  * 戻り値が `true` なら、そのインデックスを return
+
+.note[
+ポイント
+
+HashSet と異なり、`hashCode()` は使用しない
+]
+
+---
+
+# equals(Object o) と hashCode()
+
+* **格納されている要素を元に処理を行う**
+  * 同じ要素が含まれているなら、インスタンスが異なっても同じ結果になる
+* つまり、HashMap のキーとして使える
+  * ただし、**キーとして使用してからリストの中身を変更すると取り出せなくなる**
 
 ---
 
