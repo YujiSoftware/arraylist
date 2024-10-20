@@ -89,6 +89,11 @@
       padding: 0 0.5em;
     }
 
+    hr {
+      border: 0;
+      border-bottom: 3px dashed #444;
+    }
+
     div.note {
       position: relative;
       padding: 0.1em 0.5em;    
@@ -111,6 +116,15 @@
     div.note > :nth-child(n + 2) {
       margin: 0.5em auto;
     }
+
+    span.img {
+      display: block;
+      text-align: center;
+    }
+    span.array img {
+      height: 250px;
+    }
+
     .flex {
       display: flex;
       margin: 0.5em 0px;
@@ -135,6 +149,12 @@ class: center, middle
 YujiSoftware
 
 ---
+
+# 今日のまとめ
+
+
+
+---
 class: center, middle
 
 # ArrayList とは？
@@ -152,7 +172,8 @@ class: center, middle
 # 目次
 
 * List インタフェースについて
-* ArrayList の設計とアルゴリズム
+* ArrayList の設計
+* ArrayList のアルゴリズム
 * ArrayList の実装（ソースコードを読む）
   * コンストラクタ
   * add, set, remove, contains, indexOf, toArray, hashCode, equals, clear, ensureCpacity, trimToSize, clone
@@ -272,7 +293,7 @@ class: center, middle
 ---
 class: center, middle
 
-# ArrayList の設計とアルゴリズム
+# ArrayList の設計
 
 ---
 
@@ -316,9 +337,112 @@ public class ArrayList<E> extends AbstractList<E>
 
 ---
 
-# ArrayList のアルゴリズム(1)
+class: center, middle
 
+# ArrayList のアルゴリズム
 
+---
+
+# ArrayList の中身
+
+* 内部に**配列**と、現在使用中の**サイズ**を持っている
+* 配列の大きさを**容量（capacity）**という
+* リストに保持するデータを**要素（element）**という
+
+<hr>
+.img.array[![ArrayList初期状態](./img/array0.svg)]
+
+---
+
+# リスト操作の注目ポイント
+
+* 操作（要素の追加、削除など）ごとの**処理時間の違い**
+  * **O(1)**：サイズによらず**一定時間**で処理（**速い**）
+  * **O(n)**：サイズによって**線形時間**で処理（**遅い**）
+* 初期容量の大事さ
+  * **大きいほうが良い**が、メモリ消費量とのトレードオフ
+
+---
+
+# 末尾に要素を追加 → O(1)
+
+**配列に空きがある**場合
+1. 空いてる末尾にデータを入れる
+2. サイズを + 1
+<br>&nbsp;
+
+<hr>
+.img.array[![ArrayList に要素を追加](./img/array1.svg)]
+  
+---
+
+# 末尾に要素を追加 → O(n)
+
+**配列に空きがない**場合
+1. より大きな**新しい配列を用意**し、**データをコピー**
+2. 新しい配列の空いてる末尾にデータを入れる
+3. サイズを + 1
+
+<hr>
+.img.array[![ArrayList に要素を追加](./img/array2.svg)]
+ 
+---
+
+# 途中に要素を追加 → O(n)
+
+1. 追加したい要素以降を**後ろにコピー**
+2. 空いた箇所にデータを入れる
+3. サイズを + 1
+<br>&nbsp;
+
+<hr>
+.img.array[![ArrayList に要素を追加](./img/array3.svg)]
+
+---
+
+# 末尾の要素を削除 → O(1)
+
+&nbsp;
+1. 末尾の要素を `null` で上書き
+2. サイズを - 1
+<br>&nbsp;
+
+<hr>
+
+---
+
+# 途中の要素を削除 → O(1)
+
+1. 削除したい要素以降を**前にコピー**
+2. 末尾の要素を `null` で上書き
+3. サイズを - 1
+<br>&nbsp;
+
+<hr>
+
+---
+
+# インデックス指定で要素を取得 → O(1)
+
+<br>&nbsp;
+1. 要素のインデックスにアクセス
+<br>&nbsp;
+
+<hr>
+
+---
+
+# ある要素が含まれているか → O(n)
+
+1. 先頭から順番に一致するかどうかを判定
+
+.note[
+Java の場合
+
+一致するかどうか要素の equals メソッドで判定
+]
+
+<hr>
 
 ---
 
