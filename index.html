@@ -11,6 +11,20 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
 
+    @page {
+      size: 1210px 681px;
+      margin: 0
+    }
+    @media print{
+      .remark-slide-scaler{
+        width: 100% !important;
+        height: 100% !important;
+        transform: scale(1) !important;
+        top: 0 !important;
+        left:0 !important;
+      }
+    }
+
     body { 
       font-family: 'Noto Sans JP", sans-serif';
     }
@@ -146,7 +160,9 @@ class: center, middle
 # ArrayListの仕組みと実装
 
 &nbsp;  
-YujiSoftware
+<img src="img/photo.jpg" width="150px;" style="border-radius: 50%; vertical-align: middle;">
+
+@YujiSoftware
 
 ---
 
@@ -175,10 +191,12 @@ class: center, middle
 * ArrayList の設計
 * ArrayList のアルゴリズム
 * ArrayList の実装（ソースコードを読む）
-  * コンストラクタ
-  * add, set, remove, contains, indexOf, toArray, hashCode, equals, clear, ensureCpacity, trimToSize, clone
+
 
 ※ スコープ外: ジェネリクス、歴史
+
+<br>&nbsp;
+本日の資料: https://yuji.software/arraylist/
 
 ---
 
@@ -187,7 +205,7 @@ class: center, middle
 <ul>
   <li><strong>データ構造</strong>の一つ
   <ul>
-    <li><strong>連続した</strong>データの集まりを扱う</li>
+    <li><strong>連続した</strong>データの集まりを扱うためのもの</li>
     <ul>
       <li>意味的には "Sequence" のほうが妥当</li>
       <li>短い名前のほうがいいということで "List" が採用された</li>
