@@ -170,13 +170,16 @@ class: center, middle
 
 * ArrayList の概要
   * インタフェースについて
-  * 親クラスについて
+  * Collections Framework について
 * ArrayList のアルゴリズム
-* ArrayList の実装
-  * ソースコードを読む
+* ArrayList の実装（ソースコードを読む）
 
-（※ スコープ外: ジェネリクス、歴史〜）
-<br>&nbsp;
+.note[
+スコープ外
+
+ArrayList 以外のコレクションの話、ジェネリクスの話
+]
+
 本日の資料: https://yuji.software/arraylist/
 
 ---
@@ -189,11 +192,12 @@ class: center, middle
 
 # 注目ポイント
 
-* ArrayList が実装するインタフェースについて
+* ArrayList って何？
+* ArrayList が実装するインタフェースごとの特徴
   * List インタフェースとは？
-  * インタフェースごとの違い
-  * マーカーインタフェースとは
-* 実装方法について
+  * SequencedCollection インタフェースとは？
+  * Collection インタフェースとは？
+  * マーカーインタフェースとは？
 
 ---
 class: center, middle
@@ -210,15 +214,28 @@ class: center, middle
 
 ---
 
-# ArrayList の位置づけ
+# ArrayList の特徴
 
-* List インタフェースの**実装クラスのひとつ**
+1. **List インタフェースの実装クラスのひとつ**
   * 他には **LinkedList**（連結リスト）など
-* ArrayList 固有のメソッドのメソッドは**ほぼ**ない
-  * `ensureCapacity(int)`, `trimToSize()` のみが固有
+2. 複数の**マーカーインタフェース**（後述）がある
+3. **AbstractList** を継承して実装されている  
+```java
+public class ArrayList<E> extends AbstractList<E>
+    implements List<E>, 
+              RandomAccess, Cloneable, Serializable
+```
 
+---
+
+# ArrayList のメソッド
+
+* ArrayList 固有のメソッドのメソッドは**ほぼ**ない
+  * `ensureCapacity(int)`, `trimToSize()` のみが固有  
 &nbsp;  
-→ ArrayList を知るには、**List インタフェースとその親インタフェースのことを知る必要がある**
+* ArrayList を知るために
+ * **List インタフェースのことを知る必要がある**  
+ * さらに、その親インタフェースも知る必要がある
 
 ---
 
@@ -267,7 +284,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# List インタフェースの主なメソッド
+# List インタフェースの主なメソッド (1)
 
 |操作|戻り値|メソッド名と引数|
 |--|--|--|
@@ -282,7 +299,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# List インタフェースの主なメソッド
+# List インタフェースの主なメソッド (2)
 
 |操作|戻り値|メソッド名と引数|
 |:--:|--|
@@ -362,13 +379,25 @@ for (var e : list.reversed()) {
 
 ---
 
-# Collection の主なメソッド
+# Collection の主なメソッド (1)
 
 |操作|戻り値|メソッドと引数|
 |:--:|--|--|
-|追加|void|add(E element)|
+|追加|boolean|add(E element)|
+|追加|boolean|addAll(Collection<? extends E> c)|
 |削除|E|remove(Object element)|
 |検索|boolean|contains(Object element)|
+
+* List インタフェースと異なる `add(E)` がある
+  * インデックスの指定ができない
+  * 戻り値がある（Set でコレクションが変更されなかった場合は `false` になる。List の場合は常に `true` になる）
+
+---
+
+# Collection の主なメソッド (2)
+
+|操作|戻り値|メソッドと引数|
+|:--:|--|--|
 |ストリーム|Stream&amp;lt;E&amp;gt;|stream()|
 |変換|Object[]|toArray()|
 |変換|T[]|toArray()|
@@ -404,44 +433,69 @@ for (var e : list.reversed()) {
 
 ---
 
-# その他のインタフェース
+# ArrayList の特徴 （再掲）
+
+1. **List インタフェース**の実装クラスのひとつ
+  * 他には **LinkedList**（連結リスト）など
+2. 複数の**マーカーインタフェース**（後述）がある
+3. **AbstractList** を継承して実装されている  
+```java
+public class ArrayList<E> extends AbstractList<E>
+    implements List<E>, 
+              RandomAccess, Cloneable, Serializable
+```
+
+---
+
+# マーカーインタフェース
+
+.note[
+マーカーインタフェース
+
+**メソッドやフィールドが一切定義されていない**インタフェース。<br/>
+クラスの特徴を表すために用いる。
+]
+
+* ArrayList では**3つ**付与されている
 
 ```java
 public class ArrayList<E> extends AbstractList<E>
     implements List<E>, 
 *              RandomAccess, Cloneable, Serializable
 ```
-
-* ArrayList には `List<E>` 以外にも  
-**3つのマーカーインタフェース**を実装
-
-.note[
-マーカーインタフェース
-
-メソッドやフィールドが一切定義されていないインタフェース。<br/>
-クラスの特徴を表すために用いる。
-]
 ---
 
-# ArrayList のマーカーインタフェース
+# 各マーカーインタフェースの意味
 
-* 以下のことを示している
-* RandomAccess
-  * ランダムアクセスが高速である
-* Cloneable
-  * clone() メソッドに対応している
-* Serializable
-  * シリアライズ可能である
-
+* **RandomAccess**
+  * ランダムアクセスが得意
+  * 一部の処理（`Collections.binarySearch()`など）では、このインタフェースの有無によって使用するアルゴリズムを変えている
+* **Cloneable**
+  * `clone()` メソッドに対応
+* **Serializable**
+  * シリアライズ可能
 
 ---
 
-# ArrayList の継承関係
+# ArrayList の親クラス
 
-* 共通の抽象クラスを使うことで、
+* AbstractList を継承して実装されている
+
+```java
+*public class ArrayList<E> extends AbstractList<E>
+    implements List<E>, 
+              RandomAccess, Cloneable, Serializable
+```
+
+---
+
+# ArrayList の親クラス
+
+* インタフェースごとに抽象クラスが用意されている
+  * 実装を簡単に用意できるようになっている
 
 ![ArrayListの設計](img/extends.svg)
-  
+
 ---
 
 class: center, middle
@@ -902,12 +956,38 @@ private void add(E e, Object[] elementData, int s) {
 4. `this.size` を + 1
 5. `true` を return
 
-.note[
-戻り値の boolean の意味
+---
 
-コレクションが変更されたかどうか
-（Set の場合はすでに同じ値があった場合に false になるが、List は必ず true になる）
-]
+# void add(int index, E element)
+
+**指定された位置**に、指定された要素を追加
+```java
+public void add(int index, E element) {
+* rangeCheckForAdd(index);
+  modCount++;
+  final int s;
+  Object[] elementData = this.elementData;
+  if ((s = size) == elementData.length)
+      elementData = grow(s + 1);
+* System.arraycopy(elementData, index,
+*                  elementData, index + 1, s - index);
+  elementData[index] = element;
+  size = s + 1;
+}
+```
+
+---
+
+# void add(int index, E element)
+
+1. 範囲外（`index < 0` または `index >= size`）の場合
+  * **IndexOutOfBoundsException** をスロー
+2. `this.modCount` を + 1
+3. 空きがない場合
+  * `grow(size + 1)` で新しい容量の配列を作る（後述）
+4. **指定されたインデックス + 1 以降を、一つ後ろにコピー**
+5. 指定されたインデックスにオブジェクトを追加
+6. `this.size` を + 1
 
 ---
 
@@ -958,36 +1038,14 @@ private Object[] grow(int minCapacity) {
 
 ---
 
-# void add(int index, E element)
+# 補足：容量の拡大・縮小
 
-**指定された位置**に、指定された要素を追加
-```java
-public void add(int index, E element) {
-* rangeCheckForAdd(index);
-  modCount++;
-  final int s;
-  Object[] elementData = this.elementData;
-  if ((s = size) == elementData.length)
-      elementData = grow(s + 1);
-* System.arraycopy(elementData, index,
-*                  elementData, index + 1, s - index);
-  elementData[index] = element;
-  size = s + 1;
-}
-```
-
----
-
-# void add(int index, E element)
-
-1. 範囲外（`index < 0` または `index >= size`）の場合
-  * **IndexOutOfBoundsException** をスロー
-2. `this.modCount` を + 1
-3. 空きがない場合
-  * `grow(size + 1)` で新しい容量の配列を作る
-4. **指定されたインデックス + 1 以降を、一つ後ろにコピー**
-5. 指定されたインデックスにオブジェクトを追加
-6. `this.size` を + 1
+* `add(E)`せずに容量を拡大したい場合
+ * `ensureCapacity(int minCapacity)` を使う
+ * 大量の要素を追加する前に使うと、配列のコピーを減らせる
+* 容量は**自動的に縮小しない**
+  * 縮小するには、明示的に `trimToSize()` を実行する
+  * 要素をもう追加しないと確定したときに使うと、メモリ使用量を減らせる
 
 ---
 
@@ -1050,8 +1108,6 @@ private void fastRemove(Object[] es, int i) {
  * 指定されたインデックス + 1 以降を、一つ手前にコピーを代入
 3. サイズを更新
 4. 末尾の要素に `null` を代入
-
-TODO: 図
 
 ---
 
