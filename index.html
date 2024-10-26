@@ -351,28 +351,31 @@ public class ArrayList<E> extends AbstractList<E>
 
 class: center, middle
 
-# ArrayList のアルゴリズム
+# 2. ArrayList のアルゴリズム
 
 ---
 
-# ArrayList の中身
+# 注目ポイント
+
+* 操作（要素の追加、削除など）による内部の変化
+* **初期容量**の大事さ
+  * 大きいほうが良いが、メモリ消費量とのトレードオフ
+* 操作ごとの**処理時間の違い**
+  * **O(1)**：サイズによらず**一定時間**で処理（**速い**）
+  * **O(n)**：サイズによって**線形時間**で処理（**遅い**）
+* **マルチスレッド非対応**の理由
+
+---
+
+# ArrayList の初期状態
 
 * 内部に**配列**と、現在使用中の**サイズ**を持っている
 * 配列の大きさを**容量（capacity）**という
+  * リストの作成時に、初期容量を指定できる
 * リストに保持するデータを**要素（element）**という
 
 <hr>
 .img.array[![ArrayList初期状態](./img/array0.svg)]
-
----
-
-# リスト操作の注目ポイント
-
-* 操作（要素の追加、削除など）ごとの**処理時間の違い**
-  * **O(1)**：サイズによらず**一定時間**で処理（**速い**）
-  * **O(n)**：サイズによって**線形時間**で処理（**遅い**）
-* 初期容量の大事さ
-  * **大きいほうが良い**が、メモリ消費量とのトレードオフ
 
 ---
 
@@ -420,6 +423,8 @@ class: center, middle
 <br>&nbsp;
 
 <hr>
+.img.array[![ArrayList の末尾の要素を削除](./img/array4.svg)]
+
 
 ---
 
@@ -431,6 +436,7 @@ class: center, middle
 <br>&nbsp;
 
 <hr>
+.img.array[![ArrayList の途中の要素を削除](./img/array5.svg)]
 
 ---
 
@@ -441,6 +447,7 @@ class: center, middle
 <br>&nbsp;
 
 <hr>
+.img.array[![ArrayList のインデックス指定で要素を取得](./img/array6.svg)]
 
 ---
 
@@ -455,6 +462,11 @@ Java の場合
 ]
 
 <hr>
+.img.array[![ArrayList にある要素が含まれているか](./img/array7.svg)]
+
+---
+
+# インデックス指定で要素を取得 → O(1)
 
 ---
 
@@ -462,6 +474,13 @@ class: center, middle
 
 # ArrayList の実装
 # （ソースコードを読む）
+
+---
+
+# 注目ポイント
+
+* 実装上の工夫
+  * どのように最適化がされているか
 
 ---
 
@@ -485,13 +504,11 @@ https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util
 
 * フィールド変数
 * コンストラクタ
-* add
-* get
-* remove
-* indexOf
-* contains
-* equals
-* toArray
+* 追加（add）
+* 取得（get）
+* 削除（remove）
+* 含む？（contains）
+* 一致？（equals）
 
 ---
 
@@ -1083,7 +1100,7 @@ boolean equalsRange(List<?> other, int from, int to) {
 
 ---
 
-# grow の新しい容量の決定方法
+# 補足：grow の新しい容量の決定方法
 
 * 引数 `minCapacity` か **現在の容量の 1.5倍**（大きい方）
 * ただし、`Integer.MAX_VALUE - 8` を超える場合
@@ -1098,7 +1115,7 @@ boolean equalsRange(List<?> other, int from, int to) {
 
 ---
 
-# Integer.MAX_VALUE - 8 って？
+# 補足：Integer.MAX_VALUE - 8 って？
 
 * `SOFT_MAX_ARRAY_LENGTH` という定数値
   * 作成できる**配列の長さ上限ギリギリの値** ([JDK-6933217](https://bugs.openjdk.org/browse/JDK-6933217))
@@ -1106,7 +1123,7 @@ boolean equalsRange(List<?> other, int from, int to) {
 .note[
 配列の長さの上限
 
-* Java 言語仕様上は `Integer.MAX_VALUE - 1` まで
+* Java 言語仕様上は `Integer.MAX_VALUE` まで
 * しかし、JVM の実装によっては `Integer.MAX_VALUE` に近い長さの配列を
 割り当てようとした場合、**ヒープの空きに関わらず** OutOfMemoryError（"Requested array size exceeds VM limit"）をスローする
 * `Integer.MAX_VALUE - 8` なら、どの JVM でも大丈夫
