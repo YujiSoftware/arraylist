@@ -50,7 +50,7 @@
       font-size: 38px; /* 20px */
       padding: 0.5em 2em;
     }
-    .remark-slide-content * {
+    .remark-slide-content > * {
       margin: 0.25em 0;
     }
     .remark-slide-number {
@@ -111,7 +111,7 @@
     div.note {
       position: relative;
       padding: 0.1em 0.5em;    
-      color: #166e25;
+      color: #066e15;
       border-radius: 0 10px 10px 10px;
       background: #e3f5d8;
       margin-top: 72px;
@@ -126,6 +126,7 @@
       color: #fff;
       border-radius: 10px 10px 0 0;
       background: #22ac38;
+      font-weight: bold;
     }
     div.note > :nth-child(n + 2) {
       margin: 0.5em auto;
@@ -164,6 +165,37 @@ class: center, middle
 @YujiSoftware
 
 ---
+
+# 目次
+
+* ArrayList の概要
+  * インタフェースについて
+  * 親クラスについて
+* ArrayList のアルゴリズム
+* ArrayList の実装
+  * ソースコードを読む
+
+（※ スコープ外: ジェネリクス、歴史〜）
+<br>&nbsp;
+本日の資料: https://yuji.software/arraylist/
+
+---
+
+class: center, middle
+
+# 1. ArrayList の概要
+
+---
+
+# 注目ポイント
+
+* ArrayList が実装するインタフェースについて
+  * List インタフェースとは？
+  * インタフェースごとの違い
+  * マーカーインタフェースとは
+* 実装方法について
+
+---
 class: center, middle
 
 # ArrayList とは？
@@ -178,146 +210,210 @@ class: center, middle
 
 ---
 
-# 目次
+# ArrayList の位置づけ
 
-* ArrayList の設計
-  * インタフェースについて
-  * 親クラスについて
-* ArrayList のアルゴリズム
-* ArrayList の実装
-  * ソースコードを読む
+* List インタフェースの**実装クラスのひとつ**
+  * 他には **LinkedList**（連結リスト）など
+* ArrayList 固有のメソッドのメソッドは**ほぼ**ない
+  * `ensureCapacity(int)`, `trimToSize()` のみが固有
 
-（※ スコープ外: ジェネリクス、歴史〜）
-<br>&nbsp;
-本日の資料: https://yuji.software/arraylist/
+&nbsp;  
+→ ArrayList を知るには、**List インタフェースとその親インタフェースのことを知る必要がある**
 
 ---
 
-# List って？
+# List インタフェースとは
 
-<ul>
-  <li><strong>データ構造</strong>の一つ
-  <ul>
-    <li><strong>連続した</strong>データの集まりを扱うためのもの</li>
-    <ul>
-      <li>意味的には "Sequence" のほうが妥当</li>
-      <li>短い名前のほうがいいということで "List" が採用された</li>
-    </ul>
-  </ul>
-  <li>Java 1.2 で、<strong>Collections Framework</strong> のひとつとして標準APIに追加された</li>
-</ul>
----
-
-# Collections Framework
-
-* オブジェクトの集合を表し、操作するアーキテクチャ
-  * インタフェースと実装クラスの両方を提供している
+* Collections Framework の一部  
+  （↑オブジェクトの集合を操作するフレームワーク）
 
 <hr/>
 【 主なインタフェース 】
 
 ![Collections Framework](img/collections.svg)
 
+---
+
+# List インタフェースの継承階層
+
+<ul>
+  <li>Iterable
+  <ul>
+    <li>Collection
+    <ul>
+      <li>SequencedCollection
+      <ul>
+        <li>List
+      </ul>
+    </ul>
+  </ul>
+</ul>
+
+&nbsp;  
+List の実装 = **親も含めたすべてのインタフェースの実装**  
+&nbsp;  
+→ これらのインタフェースの違いは？
 
 ---
 
-# List インタフェースについて (2)
+# List インタフェースについて
 
-* List の特徴
-  * **順序のある**コレクション（集合）
-  * **インデックスでアクセス**できる
-  * **重複**した要素を格納できる
-* 主な実装クラス
-  * **ArrayList**
-  * LinkedList
-  * Vector（互換性のために残っている）
-  * CopyOnWriteArrayList
+* 要素が**順番に格納されている**コレクション
+* **インデックスでアクセス**できる
+* **任意の位置**に操作（追加、削除など）ができる
+
+<hr>
+.img.array[![List インタフェース](img/list.svg)]
 
 ---
 
 # List インタフェースの主なメソッド
 
-|操作|メソッド|
+|操作|戻り値|メソッド名と引数|
+|--|--|--|
+|追加|void|add(int index, E element)|
+|取得|E|get(int index)|
+|削除|E|remove(int index)|
+|検索|int|indexOf(Object o)|
+|部分取得|List&amp;lt;E&amp;gt;|subList(int fromIndex, int toIndex)|
+|ソート|void|sort(Comparator&amp;lt;? super E&amp;gt; c)|
+
+* インデックスを指定しての操作が特徴的
+
+---
+
+# List インタフェースの主なメソッド
+
+|操作|戻り値|メソッド名と引数|
 |:--:|--|
-|追加|void add(int index, E element)|
-|取得|E get(int index)|
-|削除|E remove(int index)|
-|検索|int indexOf(Object o)|
-|部分取得|List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)|
-|比較|int hashCode()<br/>boolean equals(Object o)|
+|一致|boolean|equals(Object o)|
+|比較|int|hashCode()|
+
+* **List インタフェースとして** `equals` と `hashCode` が定義されている
+  * **実装に関わらず**、**リスト内の要素がすべて同じ**なら `equals` が `true` で、`hashCode` の値が等しくなる
 
 ---
 
 # SequencedCollectionインタフェース
 
-* 順序のあるコレクション（集合）
-* 両端の操作が操作できる
-* Java 21 で追加された
-  * Deque や SortedSet といった順序のあるコレクションを統一的に扱えるようにするため
+* 要素が**連続した**コレクション
+* **両端から連続してアクセス**できる
+* **両端に対して**操作できる
 
-![SequencedCollectionインタフェース](img/sequenced.svg)
+<hr>
+.img.array[![Collection インタフェース](img/sequence.svg)]
+
+---
+
+# SequencedCollectionインタフェース
+
+* **Java 21** で追加された
+  * Deque や SortedSet といった連続したコレクションを統一的に扱えるようにするため
+
+&nbsp;  
+<hr>
+
+.img[![Collection インタフェース](img/sequenced.svg)]
 
 ---
 
 # SequencedCollectionの主なメソッド
 
-|操作|メソッド|
-|:--:|--|
-|追加|default void addFirst(E e)<br/>default void addLast(E e)|
-|取得|default E getFirst()<br/>default E getLast()|
-|削除|default E removeFirst()<br/>default E removeLast()|
-|逆順操作|SequencedCollection&amp;lt;E&amp;gt; reversed()|
+|操作|戻り値|メソッドと引数|
+|--|--|--|
+|追加|void|addFirst(E e)|
+|追加|void|addLast(E e)|
+|取得|E|getFirst()|
+|取得|E|getLast()|
+|削除|E|removeFirst()|
+|削除|E|removeLast()|
 
+* すべて **デフォルトメソッド**  
+（インタフェースで実装が提供されている）
+
+---
+
+# SequencedCollectionの主なメソッド
+
+|操作|戻り値|メソッドと引数|
+|--|--|--|
+|逆順View|SequencedCollection&amp;lt;E&amp;gt;|reversed()|
+
+* 要素の内容を逆順にした View を取得できる
+  * View に変更した内容は、元のコレクションに反映される
+  * この View は、for ループできる
+
+```java
+for (var e : list.reversed()) {
+    System.out.println(e);
+}
+```
 ---
 
 # Collection インタフェース
 
+* **要素の**コレクション
+  * 順序は規定されていない
 * Collections Framework のルートインタフェース
-* オブジェクトのコレクションを表すオブジェクト
-* コレクションに共通の操作を提供する
+
+<hr>
+
+.img.array[![Collection インタフェース](img/collection.svg)]
 
 ---
 
 # Collection の主なメソッド
 
-|操作|メソッド|
-|:--:|--|
-|追加|void add(E element)|
-|取得| - |
-|削除|E remove(Object element)|
-|検索|boolean contains(Object element)|
-|ああ|default Stream&amp;lt;E&amp;gt; stream()|
-|変換|Object[] toArray()<br/>T[] toArray(T[] a)<br/>default T[] toArray(IntFunction<T[]> generator)|
+|操作|戻り値|メソッドと引数|
+|:--:|--|--|
+|追加|void|add(E element)|
+|削除|E|remove(Object element)|
+|検索|boolean|contains(Object element)|
+|ストリーム|Stream&amp;lt;E&amp;gt;|stream()|
+|変換|Object[]|toArray()|
+|変換|T[]|toArray()|
+
+* **要素を一つ取得するメソッドはない**
+  * `stream()` や `iterator()` を使う
 
 ---
 
 # Iterable インタフェース
 
-* 拡張for文（foreachループ）を使えるようにするためのインタフェース
-  * Java 5 で追加
-  * Collection インタフェースから `iterator()` を切り出した
+* **イテレータを提供する**
+  * イテレータにより、要素を一つずつ取り出せる
+  * このインタフェースを実装したクラスは、**拡張for文（foreachループ）で使えるようになる**
 
-|操作|メソッド|
-|:--:|--|
-|Iterator の取得|Iterator&amp;lt;T&amp;gt; iterator()|
+<hr>
 
----
-class: center, middle
-
-# ArrayList の設計
+.img.array[![Iterable インタフェース](img/iterable.svg)]
 
 ---
 
-# ArrayList の設計
+# Iterable インタフェース
+
+|操作|戻り値|メソッドと引数|
+|:--:|--|--|
+|イテレーターの取得|Iterator&amp;lt;T&amp;gt;|iterator()|
+
+* もともとは Colleciton インタフェースにあったメソッド
+  * Java 5 で独立したインタフェースになった
+* この他に、Java 8 でデフォルトメソッドが追加された
+  * `void forEach(Consumer<? super T> action)`
+  * `Spliterator<T> spliterator()`
+
+---
+
+# その他のインタフェース
 
 ```java
 public class ArrayList<E> extends AbstractList<E>
     implements List<E>, 
-               RandomAccess, Cloneable, Serializable
+*              RandomAccess, Cloneable, Serializable
 ```
 
-* 抽象クラス **AbstractList&amp;lt;E&amp;gt;** を継承
-* List&amp;lt;E&amp;gt; と **3つのマーカーインタフェース**を実装
+* ArrayList には `List<E>` 以外にも  
+**3つのマーカーインタフェース**を実装
 
 .note[
 マーカーインタフェース
@@ -325,15 +421,6 @@ public class ArrayList<E> extends AbstractList<E>
 メソッドやフィールドが一切定義されていないインタフェース。<br/>
 クラスの特徴を表すために用いる。
 ]
-  
----
-
-# ArrayList の継承関係
-
-* 共通の抽象クラスを使うことで、
-
-![ArrayListの設計](img/extends.svg)
-
 ---
 
 # ArrayList のマーカーインタフェース
@@ -346,6 +433,15 @@ public class ArrayList<E> extends AbstractList<E>
 * Serializable
   * シリアライズ可能である
 
+
+---
+
+# ArrayList の継承関係
+
+* 共通の抽象クラスを使うことで、
+
+![ArrayListの設計](img/extends.svg)
+  
 ---
 
 class: center, middle
@@ -452,11 +548,11 @@ class: center, middle
 
 ---
 
-# インデックス指定で要素を取得 → O(1)
+# インデックスで要素を取得 → O(1)
 
-<br>&nbsp;
-1. 要素のインデックスにアクセス
-<br>&nbsp;
+<br>
+1. 配列の指定されたインデックスにアクセス  
+&nbsp;
 
 <hr>
 .img.array[![ArrayList のインデックス指定で要素を取得](./img/array6.svg)]
@@ -1171,6 +1267,32 @@ boolean equalsRange(List<?> other, int from, int to) {
 
 比較対象のリストの `size()` の実装が O(n) の可能性があるため
 ]
+
+---
+
+# まとめ
+
+* インタフェース
+  * それぞれに違いがある
+  * List, SequencedCollection, Collection, Iterable
+* アルゴリズム
+  * ArrayList の変更 = 内部の配列とサイズの変更
+  * 「速い操作」と「遅い操作」がある
+* 実装
+  * 最適化がされた実装になっている
+  * 標準ライブラリの苦悩が垣間見える
+
+---
+
+class: center, middle
+
+# 詳細解説！
+# ArrayListの仕組みと実装
+
+&nbsp;  
+<img src="img/photo.jpg" width="150px;" style="border-radius: 50%; vertical-align: middle;">
+
+@YujiSoftware
 
 ---
 
