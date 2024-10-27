@@ -57,7 +57,7 @@
       display: none; /* ページ番号 */
     }
     .remark-slide-content h1 {
-      font-size:60px; /* 55px */
+      font-size:58px; /* 55px */
     }
     .remark-slide-content h2 {
       font-size:50px; /* 45px */
@@ -284,7 +284,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# List インタフェースの主なメソッド (1)
+# Listインタフェースの主なメソッド (1)
 
 |操作|戻り値|メソッド名と引数|
 |--|--|--|
@@ -299,7 +299,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# List インタフェースの主なメソッド (2)
+# Listインタフェースの主なメソッド (2)
 
 |操作|戻り値|メソッド名と引数|
 |:--:|--|
@@ -334,7 +334,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# SequencedCollectionの主なメソッド
+# SequencedCollectionのメソッド
 
 |操作|戻り値|メソッドと引数|
 |--|--|--|
@@ -350,7 +350,7 @@ List の実装 = **親も含めたすべてのインタフェースの実装**
 
 ---
 
-# SequencedCollectionの主なメソッド
+# SequencedCollectionのメソッド
 
 |操作|戻り値|メソッドと引数|
 |--|--|--|
@@ -838,7 +838,7 @@ public ArrayList(int initialCapacity) {
 
 ---
 
-# ArrayList(Collection<? extends E> c)
+# <span style="font-size: 50px">ArrayList(Collection<? extends E> c)</span>
 
 **指定されたコレクションをコピーした**リストを作成
 ```java
@@ -858,7 +858,7 @@ public ArrayList(Collection<? extends E> c) {
 
 ---
 
-# ArrayList(Collection<? extends E> c)
+# <span style="font-size: 50px">ArrayList(Collection<? extends E> c)</span>
 
 1. `c.toArray()` によりコレクションの配列を取得
 2. 取得した配列の長さを `this.size` に代入
@@ -869,7 +869,7 @@ public ArrayList(Collection<? extends E> c) {
   
 ---
 
-# ArrayList(Collection<? extends E> c)
+# <span style="font-size: 50px">ArrayList(Collection<? extends E> c)</span>
 
 `this.size` **> 0** の場合
 1. 引数 `c` が ArrayList の場合
@@ -1367,7 +1367,7 @@ class: center, middle
 
 ---
 
-# 補足：Integer.MAX_VALUE - 8 って？
+# <span style="font-size: 54px">補足：Integer.MAX_VALUE - 8 って？</span>
 
 * `SOFT_MAX_ARRAY_LENGTH` という定数値
   * 作成できる**配列の長さ上限ギリギリの値** ([JDK-6933217](https://bugs.openjdk.org/browse/JDK-6933217))
